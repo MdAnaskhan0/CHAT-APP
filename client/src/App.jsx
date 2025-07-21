@@ -2,7 +2,7 @@ import React from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 
 // Pages
-import Auth from './pages/auth/auth'
+import Auth from './pages/auth/Auth'
 import Chat from './pages/chat/Chat'
 import Profile from './pages/profile/Profile'
 
