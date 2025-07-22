@@ -5,6 +5,7 @@ import mongoose from 'mongoose'
 import dotenv from 'dotenv'
 
 // Import routes
+import authRoutes from './routes/authRoutes.js'
 
 // Connect to MongoDB
 dotenv.config()
@@ -35,7 +36,9 @@ mongoose.connect(DATABASE_URL).then(() => {
 
 
 
-// Routes
+// api routes
+app.use('/api/auth', authRoutes)
+
 
 
 // Start server

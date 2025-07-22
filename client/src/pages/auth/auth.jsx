@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FaComment, FaUser, FaLock, FaEnvelope, FaSignInAlt, FaUserPlus } from "react-icons/fa";
-import Login from "../../components/ui/login";
+import Login from '../../components/ui/Login';
 import Regrestation from "../../components/ui/Regrestation";
 
 const Auth = () => {

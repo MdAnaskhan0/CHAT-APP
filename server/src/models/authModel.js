@@ -1,6 +1,6 @@
-import e from 'express'
 import mongoose from 'mongoose'
-import {genSalt, getSalt} from 'bcrypt'
+import { genSalt, hash } from 'bcrypt'
+import bcrypt from 'bcrypt'
 
 const authSchema = new mongoose.Schema({
     email: {
@@ -12,23 +12,23 @@ const authSchema = new mongoose.Schema({
         type: String,
         required: [true, "password is required"],
     },
-    firstName:{
+    firstName: {
         type: String,
         required: false,
     },
-    lastName:{
+    lastName: {
         type: String,
         required: false,
     },
-    image:{
+    image: {
         type: String,
         required: false,
     },
-    color:{
+    color: {
         type: Number,
         required: false,
     },
-    profileSetUp:{
+    profileSetUp: {
         type: Boolean,
         required: false,
     }
@@ -36,9 +36,13 @@ const authSchema = new mongoose.Schema({
 
 authSchema.pre('save', async function (next) {
     const salt = await genSalt();
-    this.password = await getSalt(this.password, salt);
-    next() ;
+    this.password = await hash(this.password, salt);
+    next();
 })
 
-const user = mongoose.model('auth', authSchema);
-export default user;
+authSchema.methods.comparePassword = async function (candidatePassword) {
+    return await bcrypt.compare(candidatePassword, this.password);
+};
+
+const User = mongoose.model('auth', authSchema);
+export default User;

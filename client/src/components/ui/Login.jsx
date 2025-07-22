@@ -1,19 +1,37 @@
 import React, { useState } from 'react';
 import { FaSignInAlt } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+import { apiClient } from '../../lib/api-client.js';
+import { LOGIN_ROUTE } from '../../utils/constants.js';
 
-const Login = ({ onSwitchToRegister }) => {
+const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null); // New state for error handling
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null); // Reset error on new submission
+
     try {
-      // Add your login logic here
-      console.log('Logging in with:', { email, password });
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await apiClient.post(LOGIN_ROUTE, {
+        email,
+        password,
+      });
+
+      if (response.status === 200) {
+        navigate('/chat');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      if (error.response) {
+        setError(error.response.data.message || 'Login failed. Please try again.');
+      } else {
+        setError('Network error. Please check your connection.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -22,6 +40,13 @@ const Login = ({ onSwitchToRegister }) => {
   return (
     <div className="w-full max-w-md">
       <form onSubmit={handleLogin} className="flex flex-col gap-4">
+        
+        {error && (
+          <div className="text-red-500 bg-red-50 p-2 rounded-md text-sm">
+            {error}
+          </div>
+        )}
+
         <div>
           <input
             id="login-email"
@@ -33,7 +58,7 @@ const Login = ({ onSwitchToRegister }) => {
             required
           />
         </div>
-        
+
         <div>
           <input
             id="login-password"
@@ -45,8 +70,14 @@ const Login = ({ onSwitchToRegister }) => {
             required
           />
         </div>
-        
-        <button className='btn btn-neutral' type='submite'>Log in</button>
+
+        <button 
+          className='btn btn-neutral' 
+          type='submit' 
+          disabled={isLoading}
+        >
+          {isLoading ? 'Logging in...' : 'Log in'}
+        </button>
       </form>
     </div>
   );

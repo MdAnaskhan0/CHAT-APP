@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
-import { FaUserPlus } from 'react-icons/fa';
+import { FaCheckCircle } from 'react-icons/fa';
+import { apiClient } from '../../lib/api-client.js';
+import { REGISTER_ROUTE } from '../../utils/constants.js';
 
-const Registration = ({ onSwitchToLogin }) => {
+const Registration = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [success, setSuccess] = useState(false);
 
   const validate = () => {
     const newErrors = {};
@@ -17,16 +20,34 @@ const Registration = ({ onSwitchToLogin }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const resetForm = () => {
+    setEmail('');
+    setPassword('');
+    setConfirmPassword('');
+    setErrors({});
+  };
+
   const handleRegister = async (e) => {
     e.preventDefault();
     if (!validate()) return;
-    
+
     setIsLoading(true);
     try {
-      // Add your registration logic here
-      console.log('Registering with:', { email, password });
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await apiClient.post(`${REGISTER_ROUTE}`, {
+        email,
+        password,
+      });
+
+      console.log(response);
+      if (response.status === 201) {
+        setSuccess(true);
+        resetForm();
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+      setErrors({
+        server: error.response?.data?.message || 'Registration failed'
+      });
     } finally {
       setIsLoading(false);
     }
@@ -34,6 +55,15 @@ const Registration = ({ onSwitchToLogin }) => {
 
   return (
     <div className="w-full max-w-md">
+      {success ? (
+        <div className="p-4 mb-4 bg-green-100 border border-green-400 text-green-700 rounded">
+          <div className="flex items-center gap-2">
+            <FaCheckCircle className="text-green-500" />
+            <span>Registration successful! You can now login.</span>
+          </div>
+        </div>
+      ) : null}
+      
       <form onSubmit={handleRegister} className="flex flex-col gap-4">
         <div>
           <input
@@ -47,7 +77,7 @@ const Registration = ({ onSwitchToLogin }) => {
           />
           {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
         </div>
-        
+
         <div>
           <input
             id="register-password"
@@ -60,7 +90,7 @@ const Registration = ({ onSwitchToLogin }) => {
           />
           {errors.password && <p className="mt-1 text-sm text-red-500">{errors.password}</p>}
         </div>
-        
+
         <div>
           <input
             id="register-confirm-password"
@@ -73,8 +103,18 @@ const Registration = ({ onSwitchToLogin }) => {
           />
           {errors.confirmPassword && <p className="mt-1 text-sm text-red-500">{errors.confirmPassword}</p>}
         </div>
-        
-        <button className='btn btn-neutral' type='submite'>Log in</button>
+
+        {errors.server && (
+          <p className="text-red-500 text-sm">{errors.server}</p>
+        )}
+
+        <button 
+          className='btn btn-neutral' 
+          type='submit'
+          disabled={isLoading}
+        >
+          {isLoading ? 'Registering...' : 'Register'}
+        </button>
       </form>
     </div>
   );
