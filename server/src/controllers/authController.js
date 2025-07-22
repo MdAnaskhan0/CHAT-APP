@@ -1,7 +1,8 @@
 import jwt from "jsonwebtoken";
-const { sign } = jwt;
 import User from "../models/authModel.js";
+import {rename, renameSync, unlinkSync} from "fs";
 
+const { sign } = jwt;
 const maxAge = 3 * 24 * 60 * 60 * 1000;
 
 const createToken = (email, userId) => {
@@ -163,6 +164,52 @@ export const updateUserInfo = async (req, res, next) => {
         console.error("Error updating user info:", error);
         return res.status(500).json({
             message: "An error occurred while updating user info",
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+}
+
+
+export const uploadProfileImage = async (req, res, next) => {
+    try {
+        if(!req.file){
+            return res.status(400).json({message: "Please provide a file to upload"});
+        }
+
+        const date = Date.now();
+        let fileName = "uploads/profiles/" + date + req.file.originalname;
+        renameSync(req.file.path, fileName);
+
+        const updatedUser = await User.findByIdAndUpdate(req.userId, {image: fileName}, {new: true, runValidators: true});
+        return res.status(200).json({
+            user: {
+                id: updatedUser._id,
+                email: updatedUser.email,
+                firstName: updatedUser.firstName,
+                lastName: updatedUser.lastName,
+                image: updatedUser.image,
+                color: updatedUser.color,
+                profileSetUp: updatedUser.profileSetUp,
+            },
+        });
+
+    } catch (error) {
+        console.error("Error updating user info:", error);
+        return res.status(500).json({
+            message: "An error occurred while updating user info",
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+}
+
+
+export const removeProfileImage = async (req, res, next) => {
+    try {
+        
+    } catch (error) {
+        console.log("Error rmoving profile image:", error);
+        return res.status(500).json({
+            message: "An error occurred while removing profile image",
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }

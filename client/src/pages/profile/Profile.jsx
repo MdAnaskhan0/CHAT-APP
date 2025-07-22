@@ -1,9 +1,10 @@
 import { useAppStore } from '../../store/index.js';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IoArrowBack } from 'react-icons/io5';
 import { apiClient } from '../../lib/api-client.js';
-import { GET_USER_INFO_ROUTE, UPDATE_USER_INFO_ROUTE } from '../../utils/constants.js';
+import { GET_USER_INFO_ROUTE, UPDATE_USER_INFO_ROUTE, PROFILE_IMAGE_ROUTE } from '../../utils/constants.js';
+import { FaPlus, FaTrash } from 'react-icons/fa';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ const Profile = () => {
   const [selectedColor, setSelectedColor] = useState(userInfo?.color || 0);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -55,7 +57,7 @@ const Profile = () => {
 
   const saveChanges = async () => {
     if (!validateProfile()) return;
-    
+
     setIsLoading(true);
     try {
       const response = await apiClient.post(
@@ -89,32 +91,99 @@ const Profile = () => {
     }
   };
 
+  // Image Upload
+  const handleFileInputClick = () => {
+    fileInputRef.current.click();
+  }
+
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      const formData = new FormData();
+      formData.append('profile-image', file);
+
+      const response = await apiClient.post(PROFILE_IMAGE_ROUTE, formData, {
+        withCredentials: true,
+      });
+
+      if (response.status === 200 && response.data.image) {
+        setUserInfo({ ...userInfo, image: response.data.image });
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImage(reader.result);
+      };
+
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Image upload failed:', error);
+      if (error.response?.data?.message) {
+        setErrors({ ...errors, image: error.response.data.message });
+      } else {
+        setErrors({ ...errors, image: 'Failed to upload image' });
+      }
+    }
+  };
+
+  const handleDeleteImage = async () => {
+
+  }
   return (
     <div className='bg-[#1b1c24] h-[100vh] flex items-center justify-center flex-col gap-10'>
       <div className='flex flex-col gap-10 w-[80vw] md:w-max'>
-        <IoArrowBack 
-          className='text-white text-4xl cursor-pointer' 
-          onClick={() => navigate(-1)} 
+        <IoArrowBack
+          className='text-white text-4xl cursor-pointer'
+          onClick={() => navigate(-1)}
         />
       </div>
 
       <div className='grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl px-4'>
         <div className='flex flex-col items-center gap-6'>
-          <div className="avatar">
-            <div className="ring-primary ring-offset-base-100 rounded-full ring-2 ring-offset-2">
+          <div className="avatar relative">
+            <div
+              className="ring-primary ring-offset-base-100 rounded-full ring-2 ring-offset-2 relative group"
+              onClick={image ? handleDeleteImage : handleFileInputClick}
+            >
               {image ? (
-                <img src={image} alt="avatar" className="w-32 h-32 md:w-48 md:h-48 rounded-full" />
+                <>
+                  <img
+                    src={image}
+                    alt="avatar"
+                    className="w-32 h-32 md:w-48 md:h-48 rounded-full transition-opacity group-hover:opacity-70"
+                  />
+                  <FaTrash
+                    className="absolute inset-0 m-auto text-white text-xl opacity-0 group-hover:opacity-100 transition-opacity"
+                    size={24}
+                  />
+                </>
               ) : (
-                <div 
-                  className="w-32 h-32 md:w-48 md:h-48 rounded-full flex items-center justify-center"
-                  style={{ backgroundColor: `hsl(${selectedColor * 60}, 70%, 50%)` }}
-                >
-                  <div className="text-white text-5xl font-bold uppercase">
-                    {(firstName || userInfo?.email || '?').charAt(0)}
+                <>
+                  <div
+                    className="w-32 h-32 md:w-48 md:h-48 rounded-full flex items-center justify-center transition-opacity group-hover:opacity-70"
+                    style={{ backgroundColor: `hsl(${selectedColor * 60}, 70%, 50%)` }}
+                  >
+                    <div className="text-white text-5xl font-bold uppercase">
+                      {(firstName || userInfo?.email || '?').charAt(0)}
+                    </div>
                   </div>
-                </div>
+                  <FaPlus
+                    className="absolute inset-0 m-auto text-white text-xl opacity-0 group-hover:opacity-100 transition-opacity"
+                    size={24}
+                  />
+                </>
               )}
             </div>
+            <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              onChange={handleImageChange}
+              name='profile-image'
+              accept='.jpg,.png,.jpeg,.svg'
+            />
           </div>
         </div>
 
@@ -142,7 +211,7 @@ const Profile = () => {
               value={firstName}
               onChange={(e) => {
                 setFirstName(e.target.value);
-                setErrors({...errors, firstName: ''});
+                setErrors({ ...errors, firstName: '' });
               }}
               className={`bg-[#2a2b36] text-white p-2 rounded ${errors.firstName ? 'border border-red-500' : ''}`}
             />
@@ -156,7 +225,7 @@ const Profile = () => {
               value={lastName}
               onChange={(e) => {
                 setLastName(e.target.value);
-                setErrors({...errors, lastName: ''});
+                setErrors({ ...errors, lastName: '' });
               }}
               className={`bg-[#2a2b36] text-white p-2 rounded ${errors.lastName ? 'border border-red-500' : ''}`}
             />

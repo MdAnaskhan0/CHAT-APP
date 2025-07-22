@@ -18,6 +18,9 @@ const DATABASE_URL = process.env.MONGO_DB_URL
 app.use(express.json())
 app.use(cookieParser())
 
+// image upload
+app.use("uploads/profiles", express.static("uploads/profiles"));
+
 
 // Origin configuration
 app.use(cors({
