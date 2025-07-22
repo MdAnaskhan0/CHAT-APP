@@ -3,27 +3,33 @@ import { FaSignInAlt } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../../lib/api-client.js';
 import { LOGIN_ROUTE } from '../../utils/constants.js';
+import { useAppStore } from '../../store/index.js';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null); // New state for error handling
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const { setUserInfo } = useAppStore();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setError(null); // Reset error on new submission
+    setError(null);
 
     try {
       const response = await apiClient.post(LOGIN_ROUTE, {
         email,
         password,
       });
-
-      if (response.status === 200) {
-        navigate('/chat');
+      if(response === 200){
+        useAppStore.getState().setUserInfo(response.data.user);
+        if(response.data.user.profileSetUp){
+          navigate('/chat');
+        }else{
+          navigate('/profile');
+        }
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -40,7 +46,7 @@ const Login = () => {
   return (
     <div className="w-full max-w-md">
       <form onSubmit={handleLogin} className="flex flex-col gap-4">
-        
+
         {error && (
           <div className="text-red-500 bg-red-50 p-2 rounded-md text-sm">
             {error}
@@ -71,9 +77,9 @@ const Login = () => {
           />
         </div>
 
-        <button 
-          className='btn btn-neutral' 
-          type='submit' 
+        <button
+          className='btn btn-neutral'
+          type='submit'
           disabled={isLoading}
         >
           {isLoading ? 'Logging in...' : 'Log in'}

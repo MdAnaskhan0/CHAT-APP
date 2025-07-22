@@ -101,3 +101,31 @@ export const login = async (req, res, next) => {
         });
     }
 }
+
+
+export const getUserInfo = async (req , res, next) => {
+    try {
+        
+        const userData = await User.findById(req.userId);
+        if (!userData) {
+            return res.status(404).json({ message: "User with this id not found" });
+        }
+        return res.status(200).json({
+            user: {
+                id: userData._id,
+                email: userData.email,
+                firstName: userData.firstName,
+                lastName: userData.lastName,
+                image: userData.image,
+                color: userData.color,
+                profileSetUp: userData.profileSetUp,
+            },
+        });
+    } catch (error) {
+        console.error("Error getting user info:", error);
+        return res.status(500).json({
+            message: "An error occurred while getting user info",
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+}

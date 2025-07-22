@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { FaCheckCircle } from 'react-icons/fa';
 import { apiClient } from '../../lib/api-client.js';
 import { REGISTER_ROUTE } from '../../utils/constants.js';
+import { useNavigate } from 'react-router-dom';
+import { useAppStore } from '../../store/index.js';
 
 const Registration = () => {
   const [email, setEmail] = useState('');
@@ -10,6 +12,8 @@ const Registration = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState(false);
+  const { setUserInfo } = useAppStore();
+  const navigate = useNavigate();
 
   const validate = () => {
     const newErrors = {};
@@ -40,8 +44,10 @@ const Registration = () => {
 
       console.log(response);
       if (response.status === 201) {
+        setUserInfo(response.data.user);
         setSuccess(true);
         resetForm();
+        navigate('/profile');
       }
     } catch (error) {
       console.error('Registration error:', error);
