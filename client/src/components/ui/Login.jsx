@@ -23,13 +23,9 @@ const Login = () => {
         email,
         password,
       });
-      if(response === 200){
+      if (response.status === 200) {
         useAppStore.getState().setUserInfo(response.data.user);
-        if(response.data.user.profileSetUp){
-          navigate('/chat');
-        }else{
-          navigate('/profile');
-        }
+        navigate(response.data.user.profileSetUp ? '/chat' : '/profile');
       }
     } catch (error) {
       console.error('Login error:', error);
