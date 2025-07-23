@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import User from "../models/authModel.js";
-import {rename, renameSync, unlinkSync} from "fs";
+import { rename, renameSync, unlinkSync } from "fs";
 
 const { sign } = jwt;
 const maxAge = 3 * 24 * 60 * 60 * 1000;
@@ -172,25 +172,26 @@ export const updateUserInfo = async (req, res, next) => {
 
 export const uploadProfileImage = async (req, res, next) => {
     try {
-        if(!req.file){
-            return res.status(400).json({message: "Please provide a file to upload"});
+        if (!req.file) {
+            return res.status(400).json({ message: "Please provide a file to upload" });
         }
 
         const date = Date.now();
         let fileName = "uploads/profiles/" + date + req.file.originalname;
         renameSync(req.file.path, fileName);
 
-        const updatedUser = await User.findByIdAndUpdate(req.userId, {image: fileName}, {new: true, runValidators: true});
+        const updatedUser = await User.findByIdAndUpdate(req.userId, { image: fileName }, { new: true, runValidators: true });
         return res.status(200).json({
             user: {
                 id: updatedUser._id,
                 email: updatedUser.email,
                 firstName: updatedUser.firstName,
                 lastName: updatedUser.lastName,
-                image: updatedUser.image,
+                image: `${process.env.SERVER_URL || ""}/${updatedUser.image}`,
                 color: updatedUser.color,
                 profileSetUp: updatedUser.profileSetUp,
             },
+            image: `${process.env.SERVER_URL || ""}/${updatedUser.image}`,
         });
 
     } catch (error) {
@@ -205,7 +206,7 @@ export const uploadProfileImage = async (req, res, next) => {
 
 export const removeProfileImage = async (req, res, next) => {
     try {
-        
+
     } catch (error) {
         console.log("Error rmoving profile image:", error);
         return res.status(500).json({

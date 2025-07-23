@@ -19,7 +19,7 @@ app.use(express.json())
 app.use(cookieParser())
 
 // image upload
-app.use("uploads/profiles", express.static("uploads/profiles"));
+app.use("/uploads/profiles", express.static("uploads/profiles"));
 
 
 // Origin configuration

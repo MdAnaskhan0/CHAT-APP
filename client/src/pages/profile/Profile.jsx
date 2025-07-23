@@ -150,10 +150,11 @@ const Profile = () => {
               {image ? (
                 <>
                   <img
-                    src={image}
+                    src={`${import.meta.env.VITE_SERVER_URL}/${userInfo.image}`}
                     alt="avatar"
                     className="w-32 h-32 md:w-48 md:h-48 rounded-full transition-opacity group-hover:opacity-70"
                   />
+
                   <FaTrash
                     className="absolute inset-0 m-auto text-white text-xl opacity-0 group-hover:opacity-100 transition-opacity"
                     size={24}
