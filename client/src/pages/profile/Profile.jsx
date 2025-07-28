@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IoArrowBack } from 'react-icons/io5';
 import { apiClient } from '../../lib/api-client.js';
-import { GET_USER_INFO_ROUTE, UPDATE_USER_INFO_ROUTE, PROFILE_IMAGE_ROUTE } from '../../utils/constants.js';
+import { GET_USER_INFO_ROUTE, UPDATE_USER_INFO_ROUTE, PROFILE_IMAGE_ROUTE, REMOVE_PROFILE_IMAGE_ROUTE } from '../../utils/constants.js';
 import { FaPlus, FaTrash } from 'react-icons/fa';
 
 const Profile = () => {
@@ -129,7 +129,21 @@ const Profile = () => {
   };
 
   const handleDeleteImage = async () => {
+    try {
+      const response = await apiClient.delete(REMOVE_PROFILE_IMAGE_ROUTE);
+      if (response.status === 200) {
+        console.log("Image deleted:", res.data);
+        updateUserImage(null);
+      }
 
+    } catch (error) {
+      console.error('Failed to delete image:', error);
+      if (error.response?.data?.message) {
+        setErrors({ ...errors, image: error.response.data.message });
+      } else {
+        setErrors({ ...errors, image: 'Failed to delete image' });
+      }
+    }
   }
   return (
     <div className='bg-[#1b1c24] h-[100vh] flex items-center justify-center flex-col gap-10'>
@@ -150,12 +164,12 @@ const Profile = () => {
               {image ? (
                 <>
                   <img
-                    src={`${import.meta.env.VITE_SERVER_URL}/${userInfo.image}`}
+                    src={`${import.meta.env.VITE_SERVER_URL}${userInfo.image}?t=${Date.now()}`}
                     alt="avatar"
                     className="w-32 h-32 md:w-48 md:h-48 rounded-full transition-opacity group-hover:opacity-70"
                   />
-
                   <FaTrash
+                    onClick={handleDeleteImage}
                     className="absolute inset-0 m-auto text-white text-xl opacity-0 group-hover:opacity-100 transition-opacity"
                     size={24}
                   />
@@ -183,7 +197,7 @@ const Profile = () => {
               className="hidden"
               onChange={handleImageChange}
               name='profile-image'
-              accept='.jpg,.png,.jpeg,.svg'
+              accept='.jpg,.png,.jpeg,.svg, .webp'
             />
           </div>
         </div>
